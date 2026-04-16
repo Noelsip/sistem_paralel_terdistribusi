@@ -1,29 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-=============================================================================
- SIMULASI INTERAKTIF MODEL KOMUNIKASI DALAM SISTEM TERDISTRIBUSI
-=============================================================================
- Nama   : Noel Ericson Rapael Sipayung
- NIM    : 11231072
- Mata Kuliah : Sistem Paralel dan Terdistribusi
-
- Model Komunikasi yang Disimulasikan:
-   1. Request-Response  – Sinkron; klien memblokir hingga respons diterima.
-   2. Publish-Subscribe – Asinkron berbasis topik melalui broker terpusat.
-   3. Message Passing   – Asinkron point-to-point dengan antrian pesan.
-
- Cara menjalankan:
-   python simulasi_komunikasi.py
-
- Cara berinteraksi:
-   - Pilih tab model komunikasi yang ingin dilihat.
-   - Gunakan tombol dan kontrol di panel kanan untuk memicu aksi.
-   - Amati animasi paket pesan pada kanvas dan log di panel kanan.
-   - Buka tab "Perbandingan" untuk melihat metrik gabungan semua model.
-=============================================================================
-"""
-
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import time
@@ -32,7 +6,7 @@ import math
 from datetime import datetime
 from collections import defaultdict
 
-# ─── Palet Warna (GitHub Dark-inspired) ───────────────────────────────────────
+# Palet Warna (GitHub Dark-inspired) 
 BG      = '#0d1117'
 SURF    = '#161b22'
 BORDER  = '#30363d'
@@ -74,7 +48,7 @@ def ts():
     return datetime.now().strftime('%H:%M:%S.%f')[:-3]
 
 
-# ─── Kelas Animasi Paket ───────────────────────────────────────────────────────
+# Kelas Animasi Paket
 class AnimatedPacket:
     """Paket pesan yang bergerak dari satu node ke node lain di atas kanvas."""
 
@@ -130,7 +104,7 @@ class AnimatedPacket:
             pass
 
 
-# ─── Kelas Node Visual ─────────────────────────────────────────────────────────
+# Kelas Node Visual
 class VNode:
     """Node visual berbentuk lingkaran dengan label dan status."""
 
@@ -169,7 +143,7 @@ class VNode:
                                 arrowshape=(10, 12, 4), dash=dash, tags='arrow')
 
 
-# ─── Panel Log Kejadian ────────────────────────────────────────────────────────
+# Panel Log Kejadian
 class EventLog:
     """Widget log kejadian berwarna."""
 
@@ -207,7 +181,7 @@ class EventLog:
         self.txt.config(state='disabled')
 
 
-# ─── Tab 1: Request-Response ───────────────────────────────────────────────────
+#Tab 1: Request-Response 
 class RequestResponseTab(tk.Frame):
     """
     Simulasi model Request-Response (Client-Server).
@@ -232,7 +206,7 @@ class RequestResponseTab(tk.Frame):
         self._build_ui()
         self._animate()
 
-    # ── Layout ──
+    # Layout 
     def _build_ui(self):
         # Kiri: kanvas simulasi
         left = tk.Frame(self, bg=BG)
@@ -305,7 +279,7 @@ class RequestResponseTab(tk.Frame):
                 f"  Latency rata-rata: {avg:.0f} ms\n"
                 f"  Throughput       : {m['throughput']:.2f} req/s")
 
-    # ── Gambar komponen statis ──
+    #  Gambar komponen statis 
     def _draw_static(self):
         self.cv.delete('all')
         w = self.cv.winfo_width() or 600
@@ -349,7 +323,7 @@ class RequestResponseTab(tk.Frame):
         self.cv.create_text(50, 48, text='Antrian\nKlien',
                             fill=MUTED, font=FONT_SMALL)
 
-    # ── Aksi kirim ──
+    #  Aksi kirim 
     def _send_request(self):
         if self._waiting:
             self.log.log('Klien masih menunggu respons (blocking)...', 'warn')
@@ -430,7 +404,7 @@ class RequestResponseTab(tk.Frame):
         self.after(33, self._animate)
 
 
-# ─── Tab 2: Publish-Subscribe ──────────────────────────────────────────────────
+# ─── Tab 2: Publish-Subscribe 
 TOPICS = ['cuaca', 'berita', 'saham', 'olahraga']
 TOPIC_CLR = {'cuaca': BLUE, 'berita': GREEN, 'saham': ORANGE, 'olahraga': PURPLE}
 
@@ -498,7 +472,7 @@ class PubSubTab(tk.Frame):
                  insertbackground=TEXT, font=FONT_MONO, relief='flat',
                  highlightbackground=BORDER, highlightthickness=1).pack(fill='x', padx=8, pady=2)
 
-        tk.Button(right, text='📢  Publish', bg=ORANGE, fg='white',
+        tk.Button(right, text='Publish', bg=ORANGE, fg='white',
                   font=FONT_NORM + ('bold',), relief='flat', cursor='hand2',
                   command=self._publish).pack(fill='x', padx=8, pady=6)
 
@@ -651,17 +625,8 @@ class PubSubTab(tk.Frame):
         self.after(33, self._animate)
 
 
-# ─── Tab 3: Message Passing ────────────────────────────────────────────────────
+# Tab 3: Message Passing 
 class MessagePassingTab(tk.Frame):
-    """
-    Simulasi model Message Passing (Point-to-Point).
-
-    Cara kerja:
-      • Setiap node memiliki antrian masuk (inbox queue).
-      • Pengirim menaruh pesan ke antrian penerima tanpa menunggu.
-      • Penerima memproses pesan dari antriannya secara asinkron.
-      Ini mencerminkan sifat asinkron dan decoupled Message Passing.
-    """
 
     NODES = ['Node-A', 'Node-B', 'Node-C', 'Node-D', 'Node-E']
 
@@ -873,7 +838,7 @@ class MessagePassingTab(tk.Frame):
         self.after(33, self._animate)
 
 
-# ─── Tab 4: Perbandingan ───────────────────────────────────────────────────────
+#  Tab 4: Perbandingan 
 class ComparisonTab(tk.Frame):
     """Tab perbandingan metrik antar ketiga model komunikasi."""
 
@@ -996,7 +961,7 @@ class ComparisonTab(tk.Frame):
         self.after(500, self._update_loop)
 
 
-# ─── Aplikasi Utama ────────────────────────────────────────────────────────────
+# Aplikasi Utama 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -1012,7 +977,7 @@ class App(tk.Tk):
         hdr = tk.Frame(self, bg='#010409', pady=6)
         hdr.pack(fill='x')
         tk.Label(hdr,
-                 text='  🌐  Simulasi Interaktif Model Komunikasi Sistem Terdistribusi',
+                 text=' Simulasi Interaktif Model Komunikasi Sistem Terdistribusi',
                  bg='#010409', fg=TEXT, font=('Segoe UI', 12, 'bold')).pack(side='left')
         tk.Label(hdr, text='Noel E.R. Sipayung  ·  11231072  ·  Sistem Paralel & Terdistribusi  ',
                  bg='#010409', fg=MUTED, font=FONT_SMALL).pack(side='right')
@@ -1038,7 +1003,7 @@ class App(tk.Tk):
         nb.add(t1, text='  Request-Response  ')
         nb.add(t2, text='  Publish-Subscribe  ')
         nb.add(t3, text='  Message Passing  ')
-        nb.add(t4, text='  📊 Perbandingan  ')
+        nb.add(t4, text='  Perbandingan  ')
 
         # Status bar
         self._sbar = tk.Label(self, text=' Siap.  Pilih tab untuk memulai simulasi.',
@@ -1046,7 +1011,7 @@ class App(tk.Tk):
         self._sbar.pack(fill='x', side='bottom')
 
 
-# ─── Entry Point ──────────────────────────────────────────────────────────────
+# Entry Point 
 if __name__ == '__main__':
     app = App()
     app.mainloop()
