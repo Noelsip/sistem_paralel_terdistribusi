@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(python -m py_compile simulasi_komunikasi.py)",
-      "Bash(python simulasi_komunikasi.py)"
-    ]
-  }
-}
