@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  aggregator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uts-aggregator
+    ports:
+      - "8080:8080"
+    volumes:
+      - aggregator-data:/app/data
+
+  publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uts-publisher
+    depends_on:
+      - aggregator
+    command:
+      [
+        "python",
+        "-m",
+        "src.publisher_simulator",
+        "--url",
+        "http://aggregator:8080/publish",
+        "--total",
+        "5000",
+        "--duplicate-ratio",
+        "0.2"
+      ]
+    volumes:
+      - aggregator-data:/app/data
+
+volumes:
+  aggregator-data:

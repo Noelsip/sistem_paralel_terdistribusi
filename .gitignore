@@ -1,2 +1,5 @@
 .claude/
 __pycache__/
+.venv/
+uts/.pytext_cache/
+uts/test
