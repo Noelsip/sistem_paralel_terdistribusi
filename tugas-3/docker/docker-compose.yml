@@ -1,0 +1,106 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: distsync-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 3
+    networks:
+      - distsync
+
+  node1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    container_name: distsync-node1
+    environment:
+      NODE_ID: node-1
+      NODE_HOST: 0.0.0.0
+      NODE_PORT: 8001
+      PEERS: node-2,node-3
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      LOG_LEVEL: INFO
+      PERSISTENCE_PATH: /var/lib/distsync
+    ports:
+      - "8001:8001"
+    volumes:
+      - node1-data:/var/lib/distsync
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - distsync
+
+  node2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    container_name: distsync-node2
+    environment:
+      NODE_ID: node-2
+      NODE_HOST: 0.0.0.0
+      NODE_PORT: 8002
+      PEERS: node-1,node-3
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      LOG_LEVEL: INFO
+      PERSISTENCE_PATH: /var/lib/distsync
+    ports:
+      - "8002:8002"
+    volumes:
+      - node2-data:/var/lib/distsync
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - distsync
+
+  node3:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    container_name: distsync-node3
+    environment:
+      NODE_ID: node-3
+      NODE_HOST: 0.0.0.0
+      NODE_PORT: 8003
+      PEERS: node-1,node-2
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      LOG_LEVEL: INFO
+      PERSISTENCE_PATH: /var/lib/distsync
+    ports:
+      - "8003:8003"
+    volumes:
+      - node3-data:/var/lib/distsync
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - distsync
+
+  # Optional: scale by adding more replicas via `docker-compose up --scale node-extra=N`
+  # node-extra:
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile.node
+  #   environment:
+  #     NODE_ID: node-extra
+  #     PEERS: node-1,node-2,node-3
+  #   networks:
+  #     - distsync
+
+networks:
+  distsync:
+    driver: bridge
+
+volumes:
+  node1-data:
+  node2-data:
+  node3-data:

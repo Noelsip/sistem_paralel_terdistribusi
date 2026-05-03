@@ -1,0 +1,230 @@
+openapi: 3.0.3
+info:
+  title: Distributed Sync System API
+  description: REST API for distributed lock manager, queue, and cache.
+  version: 1.0.0
+  contact:
+    name: Noel Ericson Rapael Sipayung
+    email: 11231072@student.itk.ac.id
+
+servers:
+  - url: http://localhost:8001
+    description: Node 1
+  - url: http://localhost:8002
+    description: Node 2
+  - url: http://localhost:8003
+    description: Node 3
+
+tags:
+  - name: System
+  - name: Locks
+  - name: Queue
+  - name: Cache
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Node health and Raft state
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  node_id: { type: string }
+                  raft:
+                    type: object
+                    properties:
+                      state: { type: string, enum: [follower, candidate, leader] }
+                      term: { type: integer }
+                      leader_id: { type: string, nullable: true }
+                      log_size: { type: integer }
+                      commit_index: { type: integer }
+
+  /metrics:
+    get:
+      tags: [System]
+      summary: Metrics snapshot (counters, gauges, histograms)
+      responses:
+        "200":
+          description: OK
+
+  /state:
+    get:
+      tags: [System]
+      summary: Full node state (Raft, queue, cache, locks)
+      responses:
+        "200":
+          description: OK
+
+  /locks/acquire:
+    post:
+      tags: [Locks]
+      summary: Acquire a distributed lock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, resource]
+              properties:
+                client_id: { type: string }
+                resource: { type: string }
+                mode:
+                  type: string
+                  enum: [shared, exclusive]
+                  default: exclusive
+                timeout: { type: number, default: 10 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  granted: { type: boolean }
+                  leader: { type: string, nullable: true }
+                  is_leader: { type: boolean }
+
+  /locks/release:
+    post:
+      tags: [Locks]
+      summary: Release a distributed lock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, resource]
+              properties:
+                client_id: { type: string }
+                resource: { type: string }
+      responses:
+        "200":
+          description: OK
+
+  /locks:
+    get:
+      tags: [Locks]
+      summary: List all current locks (lock table)
+      responses:
+        "200":
+          description: OK
+
+  /queues/{queue}/messages:
+    post:
+      tags: [Queue]
+      summary: Enqueue a message
+      parameters:
+        - name: queue
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payload: {}
+                partition_key: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg_id: { type: string }
+    get:
+      tags: [Queue]
+      summary: Dequeue next message
+      parameters:
+        - name: queue
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+
+  /queues/messages/{msg_id}/ack:
+    post:
+      tags: [Queue]
+      summary: Acknowledge a delivered message
+      parameters:
+        - name: msg_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+
+  /queues/stats:
+    get:
+      tags: [Queue]
+      summary: Queue statistics
+      responses:
+        "200":
+          description: OK
+
+  /cache/{key}:
+    get:
+      tags: [Cache]
+      summary: Get value from cache
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+    put:
+      tags: [Cache]
+      summary: Put value in cache (broadcasts invalidate)
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value: {}
+      responses:
+        "200":
+          description: OK
+    delete:
+      tags: [Cache]
+      summary: Delete cache entry
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+
+  /cache/stats/all:
+    get:
+      tags: [Cache]
+      summary: Cache statistics (per-state distribution, hit/miss ratio)
+      responses:
+        "200":
+          description: OK
