@@ -1,11 +1,3 @@
-"""
-HTTP/REST API server exposing the distributed sync system.
-Each container runs one server on its NODE_PORT, hosting all 3 components
-(lock manager, queue, cache). Inter-node messaging uses the in-process
-MessageBus when running as a single process for testing, and HTTP forwarding
-when running as separate Docker containers (orchestrated via docker-compose).
-"""
-
 import asyncio
 import logging
 import os

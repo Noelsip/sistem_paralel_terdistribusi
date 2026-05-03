@@ -1,16 +1,3 @@
-"""
-Distributed Queue System.
-
-Architecture:
-- Consistent hashing ring distributes messages across nodes by partition key.
-- Each message is replicated to N successors (replication factor).
-- At-least-once delivery: consumer ACKs remove the message; un-ACKed messages
-  are re-delivered after visibility timeout.
-- Persistence: append-only log on disk; replayed on restart.
-- Node failure: data on a dead node is recovered from replicas held by
-  successor nodes on the ring.
-"""
-
 import asyncio
 import bisect
 import hashlib

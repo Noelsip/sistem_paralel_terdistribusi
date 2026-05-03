@@ -1,22 +1,3 @@
-"""
-Distributed Cache with MESI Coherence Protocol.
-
-MESI states:
-- M (Modified): Cache line is dirty, only this node has the latest value.
-                Memory/other replicas are stale. On eviction must write back.
-- E (Exclusive): Only this node has the line, value matches "memory" (origin).
-                  Can transition to M without bus traffic.
-- S (Shared):    Multiple nodes may hold this line, all read-only and clean.
-- I (Invalid):   Cache line is not valid here. Read miss.
-
-Bus transactions modeled:
-- BusRd  (read miss):           ask peers, transition based on responses.
-- BusRdX (write/upgrade):       invalidate all other copies.
-- Invalidate:                   pure invalidation broadcast.
-
-Eviction: LRU (default) or LFU.
-"""
-
 import asyncio
 import logging
 import time

@@ -1,14 +1,3 @@
-"""
-Distributed Lock Manager built on Raft Consensus.
-
-Features:
-- Shared (read) and Exclusive (write) locks
-- Lock acquisition coordinated via Raft replicated log
-- Deadlock detection using wait-for-graph (WFG) cycle detection
-- Network partition handling — only Raft leader's majority side can grant locks
-- Lock leases with timeout to prevent permanent deadlock from crashed clients
-"""
-
 import asyncio
 import logging
 import time

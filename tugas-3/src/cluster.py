@@ -1,9 +1,3 @@
-"""
-In-process multi-node cluster runner.
-Useful for local demos, integration tests, and benchmarks without Docker.
-Spawns N nodes sharing the global MessageBus inside one event loop.
-"""
-
 import asyncio
 import logging
 from typing import Dict, List
