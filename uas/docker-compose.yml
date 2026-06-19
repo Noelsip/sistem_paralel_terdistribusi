@@ -1,0 +1,72 @@
+services:
+  storage:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      # Named volume
+      - pg_data:/var/lib/postgresql/data
+      # init.sql dijalankan otomatis saat database pertama kali dibuat.
+      - ./storage/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [appnet]
+
+  broker:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - broker_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [appnet]
+
+  aggregator:
+    build: ./aggregator
+    image: uas-aggregator:latest
+    depends_on:
+      storage:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://user:pass@storage:5432/db
+      BROKER_URL: redis://broker:6379/0
+      WORKERS: "4"
+      LOG_LEVEL: INFO
+    ports:
+      - "${AGG_PORT:-8090}:8080"
+    networks: [appnet]
+    restart: unless-stopped
+
+  publisher:
+    build: ./publisher
+    image: uas-publisher:latest
+    depends_on:
+      aggregator:
+        condition: service_started
+    environment:
+      TARGET_URL: http://aggregator:8080/publish
+      READY_URL: http://aggregator:8080/readyz
+      NUM_EVENTS: "20000"
+      DUP_RATIO: "0.45"   # ~31% dari total stream adalah duplikat
+      BATCH_SIZE: "200"
+      CONCURRENCY: "16"
+    networks: [appnet]
+    restart: "no"
+
+volumes:
+  pg_data:
+  broker_data:
+
+networks:
+  appnet:
+    driver: bridge
